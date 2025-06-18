@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Twilio Voice Setup Guide
 
-## Getting Started
+## 必要な設定
 
-First, run the development server:
+1. **Twilio Phone Numberの購入**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+   - Twilio Console → Phone Numbers → Buy a Number
+   - 日本の番号（+81）でVoice機能が有効な番号を購入
+   - 購入した番号を`.env.local`の`TWILIO_PHONE_NUMBER`に設定
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **TwiML Applicationの設定**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+   - Twilio Console → Voice → TwiML Apps
+   - Application SID: `AP4b8550c3d7189a3c890ed594e5385d61` を選択
+   - Voice Configuration:
+     - Request URL: `https://your-domain.com/api/voice` (または ngrok URL)
+     - HTTP Method: POST
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. **環境変数の設定**
 
-## Learn More
+   ```
+   TWILIO_PHONE_NUMBER=+815017225830  # 購入した番号
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. **ローカル開発時（ngrok使用）**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   # 別ターミナルで
+   ngrok http 3000
+   
+   # ngrok URLをTwiML ApplicationのVoice URLに設定
+   # 例: https://abc123.ngrok.io/api/voice
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 日本の電話番号の入力
 
-## Deploy on Vercel
+以下の形式で入力可能：
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `09012345678` → 自動的に `+819012345678` に変換
+- `0312345678` → 自動的に `+81312345678` に変換
+- `+819012345678` → そのまま使用
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## エラー対処
+
+- **ConnectionError (31005)**:
+
+  - TwiML ApplicationのVoice URLが正しく設定されていない
+  - ngrokが起動していない
+  - Voice URLがHTTPSでない
+
+- **AccessTokenInvalid**: API KeyとAPI Secretが正しくない
