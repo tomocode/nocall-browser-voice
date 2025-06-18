@@ -36,8 +36,8 @@ export default function DialPad({ phoneNumber, onPhoneNumberChange, onDial }: Di
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-4">
-      <div className="mb-6">
+    <div className="w-full max-w-md mx-auto p-4 flex flex-col items-center">
+      <div className="mb-6 w-full">
         <input
           type="tel"
           value={phoneNumber}
@@ -61,7 +61,7 @@ export default function DialPad({ phoneNumber, onPhoneNumberChange, onDial }: Di
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-4 place-items-center">
         {digits.map(({ digit, letters }) => (
           <button
             key={digit}
