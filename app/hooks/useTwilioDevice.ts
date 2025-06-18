@@ -139,6 +139,14 @@ export function useTwilioDevice(): TwilioDevice {
       });
 
       call.on('error', (error) => {
+        // ConnectionError 31005 は通話終了時の正常なエラーなので無視
+        if (error.code === 31005) {
+          console.log('Call ended normally');
+          setCallState('ended');
+          setCurrentCall(null);
+          return;
+        }
+        
         console.error('Call error:', error);
         setError(error.message || 'Call error occurred');
         setCallState('ended');
@@ -175,9 +183,10 @@ export function useTwilioDevice(): TwilioDevice {
   const retry = useCallback(() => {
     if (retryCount < 3 && lastPhoneNumber.current) {
       setRetryCount(prev => prev + 1);
+      setError(null);
       makeCall(lastPhoneNumber.current);
     } else {
-      setError('Maximum retry attempts reached');
+      setError('最大再試行回数に達しました');
     }
   }, [retryCount, makeCall]);
 

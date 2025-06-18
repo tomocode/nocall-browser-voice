@@ -52,6 +52,11 @@ export default function Home() {
     retry();
   };
 
+  const handleNewCall = () => {
+    setPhoneNumber('');
+    setCallDuration(0);
+  };
+
   const clearError = () => {
     console.log('Clearing error');
   };
@@ -61,10 +66,10 @@ export default function Home() {
       <div className="max-w-md mx-auto">
         <header className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Browser Voice Call
+            ブラウザ音声通話
           </h1>
           <p className="text-gray-600">
-            Make calls directly from your browser
+            ブラウザから直接電話をかけることができます
           </p>
         </header>
 
@@ -80,25 +85,21 @@ export default function Home() {
             onRetry={handleRetry}
           />
 
-          {callState === 'idle' && (
-            <>
-              <DialPad
-                phoneNumber={phoneNumber}
-                onPhoneNumberChange={setPhoneNumber}
-                onDial={handleDial}
-              />
-              
-              <div className="text-center">
-                <button
-                  onClick={handleCall}
-                  disabled={!phoneNumber.trim()}
-                  className="w-full max-w-xs px-8 py-4 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-full transition-colors"
-                >
-                  Call
-                </button>
-              </div>
-            </>
-          )}
+          <DialPad
+            phoneNumber={phoneNumber}
+            onPhoneNumberChange={setPhoneNumber}
+            onDial={handleDial}
+          />
+          
+          <div className="text-center">
+            <button
+              onClick={handleCall}
+              disabled={!phoneNumber.trim() || (callState === 'dialing' || callState === 'ringing' || callState === 'in-call')}
+              className="w-full max-w-xs px-8 py-4 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-full transition-colors"
+            >
+              {(callState === 'dialing' || callState === 'ringing' || callState === 'in-call') ? '通話中' : '発信'}
+            </button>
+          </div>
         </div>
       </div>
 

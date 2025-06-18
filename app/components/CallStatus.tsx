@@ -21,7 +21,7 @@ export default function CallStatus({
   onMute, 
   onUnmute, 
   onHangup, 
-  onRetry 
+  onRetry
 }: CallStatusProps) {
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -42,12 +42,12 @@ export default function CallStatus({
 
   const getStatusText = () => {
     switch (callState) {
-      case 'idle': return 'Ready to call';
-      case 'dialing': return 'Connecting...';
-      case 'ringing': return 'Ringing...';
-      case 'in-call': return 'In call';
-      case 'ended': return 'Call ended';
-      default: return 'Unknown';
+      case 'idle': return '発信準備完了';
+      case 'dialing': return '接続中...';
+      case 'ringing': return '呼び出し中...';
+      case 'in-call': return '通話中';
+      case 'ended': return '通話終了';
+      default: return '不明';
     }
   };
 
@@ -81,28 +81,18 @@ export default function CallStatus({
                     : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
                 }`}
               >
-                {isMuted ? 'Unmute' : 'Mute'}
+                {isMuted ? 'ミュート解除' : 'ミュート'}
               </button>
             )}
             <button
               onClick={onHangup}
               className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-full font-semibold transition-colors"
             >
-              Hang up
+              通話終了
             </button>
           </div>
         )}
 
-        {callState === 'ended' && (
-          <div className="flex justify-center mt-6">
-            <button
-              onClick={onRetry}
-              className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-semibold transition-colors"
-            >
-              Retry
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -42,7 +42,7 @@ export default function DialPad({ phoneNumber, onPhoneNumberChange, onDial }: Di
           type="tel"
           value={phoneNumber}
           onChange={(e) => onPhoneNumberChange(e.target.value)}
-          placeholder="Enter phone number"
+          placeholder="電話番号を入力"
           className="w-full p-3 text-xl text-center border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
         />
         <div className="flex justify-center gap-2 mt-2">
@@ -56,7 +56,7 @@ export default function DialPad({ phoneNumber, onPhoneNumberChange, onDial }: Di
             onClick={handleClear}
             className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm"
           >
-            Clear
+            クリア
           </button>
         </div>
       </div>
