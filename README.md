@@ -6,7 +6,7 @@
 
    - Twilio Console → Phone Numbers → Buy a Number
    - 日本の番号（+81）でVoice機能が有効な番号を購入
-   - 購入した番号を`.env.local`の`TWILIO_PHONE_NUMBER`に設定
+   - 購入した番号を`.env.local`の`NEXT_PUBLIC_TWILIO_PHONE_NUMBER`に設定
 
 2. **TwiML Applicationの設定**
 
@@ -19,7 +19,7 @@
 3. **環境変数の設定**
 
    ```
-   TWILIO_PHONE_NUMBER=+815017225830  # 購入した番号
+   NEXT_PUBLIC_TWILIO_PHONE_NUMBER=+815017225830  # 購入した番号
    ```
 
 4. **ローカル開発時（ngrok使用）**

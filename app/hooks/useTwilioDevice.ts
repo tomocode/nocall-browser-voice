@@ -38,7 +38,6 @@ export function useTwilioDevice(): TwilioDevice {
       
       const newDevice = new Device(token, {
         logLevel: 1,
-        codecPreferences: ['opus', 'pcmu'],
       });
 
       newDevice.on('registered', () => {
@@ -69,13 +68,15 @@ export function useTwilioDevice(): TwilioDevice {
 
   useEffect(() => {
     initializeDevice();
+  }, [initializeDevice]);
 
+  useEffect(() => {
     return () => {
       if (device) {
         device.destroy();
       }
     };
-  }, [initializeDevice]);
+  }, [device]);
 
   const makeCall = useCallback(async (phoneNumber: string) => {
     if (!device || !phoneNumber) {

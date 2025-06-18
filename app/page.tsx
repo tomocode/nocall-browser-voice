@@ -18,7 +18,6 @@ export default function Home() {
     hangUp,
     mute,
     unmute,
-    retry,
   } = useTwilioDevice();
 
   useEffect(() => {
@@ -48,17 +47,18 @@ export default function Home() {
     console.log('Dialing digit:', digit);
   };
 
-  const handleRetry = () => {
-    retry();
-  };
 
-  const handleNewCall = () => {
-    setPhoneNumber('');
-    setCallDuration(0);
-  };
 
   const clearError = () => {
     console.log('Clearing error');
+  };
+
+  const formatPhoneNumberForDisplay = (phoneNumber: string) => {
+    // +81から始まる場合は0に変換
+    if (phoneNumber.startsWith('+81')) {
+      return '0' + phoneNumber.substring(3);
+    }
+    return phoneNumber;
   };
 
   return (
@@ -71,6 +71,11 @@ export default function Home() {
           <p className="text-gray-600">
             ブラウザから直接電話をかけることができます
           </p>
+          {process.env.NEXT_PUBLIC_TWILIO_PHONE_NUMBER && (
+            <p className="text-sm text-gray-500 mt-2">
+              発信元番号: {formatPhoneNumberForDisplay(process.env.NEXT_PUBLIC_TWILIO_PHONE_NUMBER)}
+            </p>
+          )}
         </header>
 
         <div className="space-y-6">
@@ -82,7 +87,6 @@ export default function Home() {
             onMute={mute}
             onUnmute={unmute}
             onHangup={hangUp}
-            onRetry={handleRetry}
           />
 
           <DialPad

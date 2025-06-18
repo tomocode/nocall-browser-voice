@@ -10,7 +10,6 @@ interface CallStatusProps {
   onMute: () => void;
   onUnmute: () => void;
   onHangup: () => void;
-  onRetry: () => void;
 }
 
 export default function CallStatus({ 
@@ -20,13 +19,20 @@ export default function CallStatus({
   isMuted, 
   onMute, 
   onUnmute, 
-  onHangup, 
-  onRetry
+  onHangup
 }: CallStatusProps) {
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const formatPhoneNumberForDisplay = (phoneNumber: string) => {
+    // +81から始まる場合は0に変換
+    if (phoneNumber.startsWith('+81')) {
+      return '0' + phoneNumber.substring(3);
+    }
+    return phoneNumber;
   };
 
   const getStatusColor = () => {
@@ -60,7 +66,7 @@ export default function CallStatus({
           </div>
           {phoneNumber && (
             <div className="text-lg text-gray-700 mt-2">
-              {phoneNumber}
+              {formatPhoneNumberForDisplay(phoneNumber)}
             </div>
           )}
           {callState === 'in-call' && (
