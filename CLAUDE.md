@@ -30,7 +30,7 @@ Twilioを使用してブラウザから直接電話をかけることができ�
 
 ## 機能要件
 
-### 1. 発信フロー
+### 1. 発信フロー（Outbound）
 
 1. オペレーターが電話番号を入力
 2. 「発信」ボタンをクリック
@@ -38,6 +38,13 @@ Twilioを使用してブラウザから直接電話をかけることができ�
 4. `Twilio.Device` を初期化し `device.connect()` を呼び出す
 5. Twilioが TwiML Application の Voice URL (`/api/voice`) を呼び出し
 6. TwiML `<Dial>` で PSTN へ発信
+
+### 1-2. 着信フロー（Inbound）
+
+1. 外部から購入済みのTwilio番号に電話がかかる
+2. TwilioがTwiML ApplicationのVoice URLを呼び出し
+3. TwiML `<Dial>` でブラウザのクライアント（SIPエンドポイント）に転送
+4. ブラウザで着信音が鳴り、応答/拒否が可能
 
 ### 2. 電話番号フォーマット
 
@@ -60,11 +67,13 @@ Twilioを使用してブラウザから直接電話をかけることができ�
 - **発信準備完了** (idle): 初期状態
 - **接続中...** (dialing): 発信開始
 - **呼び出し中...** (ringing): 相手を呼び出し中
+- **着信中...** (incoming): 着信受信中
 - **通話中** (in-call): 通話中、経過時間表示
 - **通話終了** (ended): 通話終了
 
 #### 操作ボタン
 - **発信/通話中**: 状態により自動切り替え
+- **応答/拒否**: 着信時のみ表示
 - **ミュート/ミュート解除**: 通話中のみ表示
 - **通話終了**: 通話中のみ表示
 - 発信元番号の表示
@@ -103,10 +112,56 @@ TWILIO_API_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 NEXT_PUBLIC_TWILIO_PHONE_NUMBER=+81xxxxxxxxxx
 ```
 
+### 5. 通話履歴機能
+
+- 過去24時間の通話履歴を表示
+- 通話方向（発信/着信）、ステータス、時間、料金を表示
+- 手動更新機能
+- Vercel Edgeキャッシュ（1分間）で負荷軽減
+
 ## セットアップ要件
 
+### 基本設定
 1. Twilioアカウントの作成
 2. 日本の電話番号（+81）の購入
 3. API Key/Secretの生成
 4. TwiML Applicationの設定（Voice URL: https://your-domain/api/voice）
-5. 開発時はVSCodeのポートフォワード機能でローカル環境を公開 
+5. 開発時はVSCodeのポートフォワード機能でローカル環境を公開
+
+### 着信通話を有効にする追加設定
+
+#### 1. TwiML Applicationの設定
+- Twilio Console → Voice → TwiML Apps → 対象のApplication
+- Voice Configuration:
+  - Request URL: `https://your-domain/api/voice`
+  - HTTP Method: POST
+
+#### 2. 電話番号の設定
+- Twilio Console → Phone Numbers → Manage → Active Numbers
+- 購入した電話番号をクリック
+- Voice Configuration:
+  - A call comes in: TwiML App
+  - TwiML App: 作成したApplicationを選択
+
+#### 3. `/api/voice` の修正が必要
+現在の実装は発信専用のため、着信を処理するように修正が必要：
+
+```typescript
+// 着信の場合はブラウザクライアントに転送
+if (incomingCall) {
+  const dial = twiml.dial();
+  dial.client('browser-client-name'); // クライアント名が必要
+} else {
+  // 発信の場合は既存の実装
+  const dial = twiml.dial({ callerId: process.env.NEXT_PUBLIC_TWILIO_PHONE_NUMBER });
+  dial.number(to);
+}
+```
+
+#### 4. Access Tokenの修正が必要
+着信を受けるためには、固定のクライアント名（identity）が必要：
+
+```typescript
+// 現在: const identity = `user-${Date.now()}`;
+// 修正後: const identity = 'browser-client'; // 固定値
+``` 

@@ -11,17 +11,21 @@ export interface TwilioDevice {
   isMuted: boolean;
   error: string | null;
   retryCount: number;
+  incomingCall: Call | null;
   makeCall: (phoneNumber: string) => Promise<void>;
   hangUp: () => void;
   mute: () => void;
   unmute: () => void;
   retry: () => void;
+  acceptCall: () => void;
+  rejectCall: () => void;
 }
 
 export function useTwilioDevice(): TwilioDevice {
   const [device, setDevice] = useState<Device | null>(null);
   const [callState, setCallState] = useState<CallState>('idle');
   const [currentCall, setCurrentCall] = useState<Call | null>(null);
+  const [incomingCall, setIncomingCall] = useState<Call | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -53,9 +57,23 @@ export function useTwilioDevice(): TwilioDevice {
       });
 
       newDevice.on('incoming', (call) => {
-        console.log('Incoming call received');
-        setCurrentCall(call);
-        setCallState('ringing');
+        console.log('Incoming call received from:', call.parameters.From);
+        setIncomingCall(call);
+        setCallState('incoming');
+        
+        // 着信イベントリスナーを設定
+        call.on('cancel', () => {
+          console.log('Incoming call cancelled');
+          setIncomingCall(null);
+          setCallState('idle');
+        });
+
+        call.on('disconnect', () => {
+          console.log('Incoming call disconnected');
+          setIncomingCall(null);
+          setCurrentCall(null);
+          setCallState('ended');
+        });
       });
 
       await newDevice.register();
@@ -191,10 +209,38 @@ export function useTwilioDevice(): TwilioDevice {
     }
   }, [retryCount, makeCall]);
 
+  const acceptCall = useCallback(() => {
+    if (incomingCall) {
+      console.log('Accepting incoming call');
+      incomingCall.accept();
+      setCurrentCall(incomingCall);
+      setIncomingCall(null);
+      setCallState('in-call');
+
+      // 通話中のイベントリスナーを設定
+      incomingCall.on('disconnect', () => {
+        console.log('Call disconnected');
+        setCallState('ended');
+        setCurrentCall(null);
+        setIsMuted(false);
+      });
+    }
+  }, [incomingCall]);
+
+  const rejectCall = useCallback(() => {
+    if (incomingCall) {
+      console.log('Rejecting incoming call');
+      incomingCall.reject();
+      setIncomingCall(null);
+      setCallState('idle');
+    }
+  }, [incomingCall]);
+
   return {
     device,
     callState,
     currentCall,
+    incomingCall,
     isMuted,
     error,
     retryCount,
@@ -203,5 +249,7 @@ export function useTwilioDevice(): TwilioDevice {
     mute,
     unmute,
     retry,
+    acceptCall,
+    rejectCall,
   };
 }

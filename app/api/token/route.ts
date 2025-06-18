@@ -18,11 +18,11 @@ export async function GET() {
       );
     }
 
-    const identity = `user-${Date.now()}`;
+    const identity = 'browser-client';
 
     const voiceGrant = new VoiceGrant({
       outgoingApplicationSid: applicationSid,
-      incomingAllow: false,
+      incomingAllow: true,
     });
 
     const token = new AccessToken(accountSid, apiKey, apiSecret, {

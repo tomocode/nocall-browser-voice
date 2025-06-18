@@ -1,6 +1,6 @@
 'use client';
 
-export type CallState = 'idle' | 'dialing' | 'ringing' | 'in-call' | 'ended';
+export type CallState = 'idle' | 'dialing' | 'ringing' | 'in-call' | 'ended' | 'incoming';
 
 interface CallStatusProps {
   callState: CallState;
@@ -10,6 +10,8 @@ interface CallStatusProps {
   onMute: () => void;
   onUnmute: () => void;
   onHangup: () => void;
+  onAccept?: () => void;
+  onReject?: () => void;
 }
 
 export default function CallStatus({ 
@@ -19,7 +21,9 @@ export default function CallStatus({
   isMuted, 
   onMute, 
   onUnmute, 
-  onHangup
+  onHangup,
+  onAccept,
+  onReject
 }: CallStatusProps) {
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -40,6 +44,7 @@ export default function CallStatus({
       case 'idle': return 'text-gray-500';
       case 'dialing': return 'text-yellow-500';
       case 'ringing': return 'text-blue-500';
+      case 'incoming': return 'text-purple-500';
       case 'in-call': return 'text-green-500';
       case 'ended': return 'text-red-500';
       default: return 'text-gray-500';
@@ -51,6 +56,7 @@ export default function CallStatus({
       case 'idle': return '発信準備完了';
       case 'dialing': return '接続中...';
       case 'ringing': return '呼び出し中...';
+      case 'incoming': return '着信中...';
       case 'in-call': return '通話中';
       case 'ended': return '通話終了';
       default: return '不明';
@@ -75,6 +81,23 @@ export default function CallStatus({
             </div>
           )}
         </div>
+
+        {callState === 'incoming' && (
+          <div className="flex justify-center gap-4 mt-6">
+            <button
+              onClick={onAccept}
+              className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full font-semibold transition-colors"
+            >
+              応答
+            </button>
+            <button
+              onClick={onReject}
+              className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-full font-semibold transition-colors"
+            >
+              拒否
+            </button>
+          </div>
+        )}
 
         {(callState === 'dialing' || callState === 'ringing' || callState === 'in-call') && (
           <div className="flex justify-center gap-4 mt-6">

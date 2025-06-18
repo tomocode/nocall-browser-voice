@@ -15,10 +15,13 @@ export default function Home() {
     callState,
     isMuted,
     error,
+    incomingCall,
     makeCall,
     hangUp,
     mute,
     unmute,
+    acceptCall,
+    rejectCall,
   } = useTwilioDevice();
 
   useEffect(() => {
@@ -84,12 +87,16 @@ export default function Home() {
             <div className="space-y-6">
               <CallStatus
                 callState={callState}
-                phoneNumber={phoneNumber}
+                phoneNumber={callState === 'incoming' && incomingCall ? 
+                  formatPhoneNumberForDisplay(incomingCall.parameters.From || '') : 
+                  phoneNumber}
                 duration={callDuration}
                 isMuted={isMuted}
                 onMute={mute}
                 onUnmute={unmute}
                 onHangup={hangUp}
+                onAccept={acceptCall}
+                onReject={rejectCall}
               />
 
               <DialPad
@@ -101,10 +108,11 @@ export default function Home() {
               <div className="text-center">
                 <button
                   onClick={handleCall}
-                  disabled={!phoneNumber.trim() || (callState === 'dialing' || callState === 'ringing' || callState === 'in-call')}
+                  disabled={!phoneNumber.trim() || (callState === 'dialing' || callState === 'ringing' || callState === 'in-call' || callState === 'incoming')}
                   className="w-full max-w-xs px-8 py-4 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-full transition-colors"
                 >
-                  {(callState === 'dialing' || callState === 'ringing' || callState === 'in-call') ? '通話中' : '発信'}
+                  {(callState === 'dialing' || callState === 'ringing' || callState === 'in-call') ? '通話中' : 
+                   callState === 'incoming' ? '着信中' : '発信'}
                 </button>
               </div>
             </div>
