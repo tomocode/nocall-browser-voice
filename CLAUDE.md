@@ -109,4 +109,4 @@ NEXT_PUBLIC_TWILIO_PHONE_NUMBER=+81xxxxxxxxxx
 2. 日本の電話番号（+81）の購入
 3. API Key/Secretの生成
 4. TwiML Applicationの設定（Voice URL: https://your-domain/api/voice）
-5. 開発時はngrokでローカル環境を公開 
+5. 開発時はVSCodeのポートフォワード機能でローカル環境を公開 

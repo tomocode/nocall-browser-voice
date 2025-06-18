@@ -22,15 +22,12 @@
    NEXT_PUBLIC_TWILIO_PHONE_NUMBER=+815017225830  # 購入した番号
    ```
 
-4. **ローカル開発時（ngrok使用）**
+4. **ローカル開発時（VSCodeポートフォワード使用）**
 
-   ```bash
-   # 別ターミナルで
-   ngrok http 3000
-   
-   # ngrok URLをTwiML ApplicationのVoice URLに設定
-   # 例: https://abc123.ngrok.io/api/voice
-   ```
+   - VSCodeでプロジェクトを開く
+   - ポート3000をパブリックに転送
+   - 生成されたURLをTwiML ApplicationのVoice URLに設定
+   - 例: `https://xxxxxxxx-3000.app.github.dev/api/voice`
 
 ## 日本の電話番号の入力
 
@@ -45,7 +42,7 @@
 - **ConnectionError (31005)**:
 
   - TwiML ApplicationのVoice URLが正しく設定されていない
-  - ngrokが起動していない
+  - VSCodeのポートフォワードが有効になっていない
   - Voice URLがHTTPSでない
 
 - **AccessTokenInvalid**: API KeyとAPI Secretが正しくない

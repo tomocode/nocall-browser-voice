@@ -24,8 +24,6 @@ export async function POST(request: NextRequest) {
     twiml.say("An error occurred");
   }
 
-  console.log("TwiML Response:", twiml.toString());
-
   return new NextResponse(twiml.toString(), {
     headers: {
       "Content-Type": "text/xml",
