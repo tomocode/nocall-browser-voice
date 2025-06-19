@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run linting and type checking
+npm run pre-commit
+
+# Run build test to ensure production build works
+echo "Running build test..."
+npm run build
