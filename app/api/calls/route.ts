@@ -65,15 +65,7 @@ export async function GET() {
         new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
     );
 
-    return NextResponse.json(
-      { calls: callHistory },
-      {
-        headers: {
-          // SWRでクライアント側キャッシュを使用するため、軽量なEdgeキャッシュのみ
-          "Cache-Control": "max-age=0, s-maxage=30",
-        },
-      }
-    );
+    return NextResponse.json({ calls: callHistory });
   } catch (error) {
     console.error("Error fetching call logs:", error);
     return NextResponse.json(

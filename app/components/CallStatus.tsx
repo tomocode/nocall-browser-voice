@@ -1,5 +1,7 @@
 'use client';
 
+import { formatPhoneNumberForDisplay } from '../lib/utils';
+
 export type CallState = 'idle' | 'dialing' | 'ringing' | 'in-call' | 'ended' | 'incoming';
 
 interface CallStatusProps {
@@ -31,13 +33,6 @@ export default function CallStatus({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const formatPhoneNumberForDisplay = (phoneNumber: string) => {
-    // +81から始まる場合は0に変換
-    if (phoneNumber.startsWith('+81')) {
-      return '0' + phoneNumber.substring(3);
-    }
-    return phoneNumber;
-  };
 
   const getStatusColor = () => {
     switch (callState) {

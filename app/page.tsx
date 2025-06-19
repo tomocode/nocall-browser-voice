@@ -7,6 +7,7 @@ import CallHistory from './components/CallHistory';
 import ErrorToast from './components/ErrorToast';
 import { useTwilioDevice } from './hooks/useTwilioDevice';
 import { useCallHistory } from './hooks/useCallHistory';
+import { formatPhoneNumberForDisplay } from './lib/utils';
 
 export default function Home() {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -72,13 +73,6 @@ export default function Home() {
     console.log('Clearing error');
   };
 
-  const formatPhoneNumberForDisplay = (phoneNumber: string) => {
-    // +81から始まる場合は0に変換
-    if (phoneNumber.startsWith('+81')) {
-      return '0' + phoneNumber.substring(3);
-    }
-    return phoneNumber;
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
