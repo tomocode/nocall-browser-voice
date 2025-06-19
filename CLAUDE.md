@@ -27,6 +27,8 @@ Twilioを使用してブラウザから直接電話をかけることができ�
 - **スタイリング**: Tailwind CSS
 - **通話SDK**: @twilio/voice-sdk
 - **サーバーSDK**: twilio
+- **データフェッチ**: SWR (クライアント側キャッシュ)
+- **Git品質管理**: Husky (pre-pushフック)
 
 ## 機能要件
 
@@ -100,6 +102,8 @@ Twilioを使用してブラウザから直接電話をかけることができ�
 - TypeScriptによる型安全性
 - コンポーネントの責務分離
 - カスタムフックによるロジックの分離
+- 共通ライブラリによるコードの再利用
+- Git pre-pushフックによる品質担保
 
 ## 環境変数
 
@@ -117,7 +121,8 @@ NEXT_PUBLIC_TWILIO_PHONE_NUMBER=+81xxxxxxxxxx
 - 過去24時間の通話履歴を表示
 - 通話方向（発信/着信）、ステータス、時間、料金を表示
 - 手動更新機能
-- Vercel Edgeキャッシュ（1分間）で負荷軽減
+- SWRによるクライアント側キャッシュ管理
+- 通話終了時の自動更新（2秒遅延）
 
 ## セットアップ要件
 
@@ -143,25 +148,81 @@ NEXT_PUBLIC_TWILIO_PHONE_NUMBER=+81xxxxxxxxxx
   - A call comes in: TwiML App
   - TwiML App: 作成したApplicationを選択
 
-#### 3. `/api/voice` の修正が必要
-現在の実装は発信専用のため、着信を処理するように修正が必要：
+## 実装済み機能の変更履歴
 
+### 着信通話機能の実装（完了）
+
+#### 1. Access Tokenの修正
+- 固定のidentity (`'browser-client'`) を使用
+- `incomingAllow: true` で着信を有効化
+
+#### 2. `/api/voice` TwiML Webhookの拡張
 ```typescript
-// 着信の場合はブラウザクライアントに転送
-if (incomingCall) {
-  const dial = twiml.dial();
-  dial.client('browser-client-name'); // クライアント名が必要
-} else {
-  // 発信の場合は既存の実装
-  const dial = twiml.dial({ callerId: process.env.NEXT_PUBLIC_TWILIO_PHONE_NUMBER });
+// ブラウザクライアントからの発信の場合
+if (from === 'client:browser-client' && to) {
   dial.number(to);
+}
+// 外部からTwilio番号への着信の場合  
+else if (direction === 'inbound' && from !== 'client:browser-client') {
+  dial.client('browser-client');
 }
 ```
 
-#### 4. Access Tokenの修正が必要
-着信を受けるためには、固定のクライアント名（identity）が必要：
+#### 3. UI機能の追加
+- `'incoming'` ステータスの追加
+- 着信時の「応答」「拒否」ボタン
+- 着信者番号の表示
 
+#### 4. イベントハンドリング
+- `device.on('incoming')` で着信をキャッチ
+- `acceptCall()` / `rejectCall()` 機能
+- 着信キャンセル時の適切な状態管理
+
+### SWRによるデータ管理への移行（完了）
+
+#### 1. 共通ライブラリの作成
+- `app/lib/swr.ts`: 共通fetcher関数とSWR設定
+- `app/lib/utils.ts`: 共通フォーマット関数群
+- `app/types/call.ts`: 通話関連の型定義
+
+#### 2. SWR設定
+- 自動更新無効、手動更新のみ
+- 通話終了時の自動履歴更新（2秒遅延）
+- 5秒の重複リクエスト防止
+
+#### 3. コード品質向上
+- 重複コードの削除と共通化
+- TypeScript型定義の統一
+- pre-pushフックによるビルドテスト 
+
+### ブラウザ通知機能の実装（完了）
+
+#### 1. 通知許可の管理
+- `useNotifications` フックによる通知許可の状態管理
+- デバイス初期化時の自動許可リクエスト
+- ブラウザ対応チェックと適切なフォールバック
+
+#### 2. 着信通知の表示
+- 着信時の自動ブラウザ通知表示
+- 日本の電話番号フォーマットでの発信者表示
+- `requireInteraction: true` で手動消去まで表示継続
+
+#### 3. 通知インタラクション
+- 通知クリックでウィンドウフォーカスと通話応答
+- 通話応答/拒否時の通知自動クローズ
+- 着信キャンセル時の通知クリーンアップ
+
+#### 4. 実装詳細
 ```typescript
-// 現在: const identity = `user-${Date.now()}`;
-// 修正後: const identity = 'browser-client'; // 固定値
-``` 
+// 着信時のブラウザ通知
+currentNotification.current = showIncomingCallNotification(
+  formatPhoneNumber(fromNumber),
+  () => {
+    acceptCallRef.current?.(); // 通知クリックで応答
+  }
+);
+```
+
+- 通知タグ (`'incoming-call'`) による重複通知の防止
+- useRef による関数参照の適切な管理
+- メモリリークを防ぐ通知のクリーンアップ処理
