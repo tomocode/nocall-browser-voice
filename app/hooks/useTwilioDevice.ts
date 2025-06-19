@@ -217,11 +217,12 @@ export function useTwilioDevice(): TwilioDevice {
       });
 
       call.on('error', (error) => {
-        // ConnectionError 31005 は通話終了時の正常なエラーなので無視
-        if (error.code === 31005) {
-          logger.debug('Call ended normally');
+        // ConnectionError 31005 と UnknownError 31000 は通話終了時の正常なエラーなので無視
+        if (error.code === 31005 || error.code === 31000) {
+          logger.debug({ code: error.code }, 'Call ended normally');
           setCallState('ended');
           setCurrentCall(null);
+          setIsMuted(false);
           return;
         }
         
@@ -229,6 +230,7 @@ export function useTwilioDevice(): TwilioDevice {
         setError(error.message || 'Call error occurred');
         setCallState('ended');
         setCurrentCall(null);
+        setIsMuted(false);
       });
 
     } catch (err) {
@@ -286,6 +288,23 @@ export function useTwilioDevice(): TwilioDevice {
       // 通話中のイベントリスナーを設定
       incomingCall.on('disconnect', () => {
         logger.info('Call disconnected');
+        setCallState('ended');
+        setCurrentCall(null);
+        setIsMuted(false);
+      });
+      
+      incomingCall.on('error', (error) => {
+        // ConnectionError 31005 と UnknownError 31000 は通話終了時の正常なエラーなので無視
+        if (error.code === 31005 || error.code === 31000) {
+          logger.debug({ code: error.code }, 'Call ended normally');
+          setCallState('ended');
+          setCurrentCall(null);
+          setIsMuted(false);
+          return;
+        }
+        
+        logger.error({ error }, 'Incoming call error');
+        setError(error.message || 'Call error occurred');
         setCallState('ended');
         setCurrentCall(null);
         setIsMuted(false);
