@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Device, Call } from '@twilio/voice-sdk';
 import { CallState } from '../components/CallStatus';
 import { useNotifications } from './useNotifications';
+import { logger } from '../lib/logger';
 
 export interface TwilioDevice {
   device: Device | null;
@@ -36,12 +37,12 @@ export function useTwilioDevice(): TwilioDevice {
   const rejectCallRef = useRef<(() => void) | null>(null);
   const isInitializing = useRef(false);
 
-  const { showIncomingCallNotification, requestPermission } = useNotifications();
+  const { requestPermission } = useNotifications();
 
   const initializeDevice = useCallback(async () => {
     // すでにデバイスが初期化されているか、初期化中の場合はスキップ
     if (device || isInitializing.current) {
-      console.log('Device already initialized or initializing, skipping...');
+      logger.debug('Device already initialized or initializing, skipping...');
       return;
     }
     
@@ -60,22 +61,22 @@ export function useTwilioDevice(): TwilioDevice {
       });
 
       newDevice.on('registered', () => {
-        console.log('Twilio Device registered');
+        logger.info('Twilio Device registered');
         setCallState('idle');
         setError(null);
         
         // 通知許可をリクエスト（非同期で実行）
-        requestPermission().catch(console.warn);
+        requestPermission().catch((err) => logger.warn({ error: err }, 'Failed to request notification permission'));
       });
 
       newDevice.on('error', (error) => {
-        console.error('Twilio Device error:', error);
+        logger.error({ error }, 'Twilio Device error');
         setError(error.message || 'Device error occurred');
         setCallState('ended');
       });
 
       newDevice.on('incoming', (call) => {
-        console.log('Incoming call received from:', call.parameters.From);
+        logger.info({ from: call.parameters.From }, 'Incoming call received');
         setIncomingCall(call);
         setCallState('incoming');
         
@@ -109,7 +110,7 @@ export function useTwilioDevice(): TwilioDevice {
         
         // 着信イベントリスナーを設定
         call.on('cancel', () => {
-          console.log('Incoming call cancelled');
+          logger.info('Incoming call cancelled');
           if (currentNotification.current) {
             currentNotification.current.close();
             currentNotification.current = null;
@@ -119,7 +120,7 @@ export function useTwilioDevice(): TwilioDevice {
         });
 
         call.on('disconnect', () => {
-          console.log('Incoming call disconnected');
+          logger.info('Incoming call disconnected');
           if (currentNotification.current) {
             currentNotification.current.close();
             currentNotification.current = null;
@@ -133,7 +134,7 @@ export function useTwilioDevice(): TwilioDevice {
       await newDevice.register();
       setDevice(newDevice);
     } catch (err) {
-      console.error('Failed to initialize device:', err);
+      logger.error({ error: err }, 'Failed to initialize device');
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       isInitializing.current = false;
@@ -192,25 +193,25 @@ export function useTwilioDevice(): TwilioDevice {
       setCurrentCall(call);
 
       call.on('accept', () => {
-        console.log('Call accepted');
+        logger.info('Call accepted');
         setCallState('in-call');
       });
 
       call.on('disconnect', () => {
-        console.log('Call disconnected');
+        logger.info('Call disconnected');
         setCallState('ended');
         setCurrentCall(null);
         setIsMuted(false);
       });
 
       call.on('reject', () => {
-        console.log('Call rejected');
+        logger.info('Call rejected');
         setCallState('ended');
         setCurrentCall(null);
       });
 
       call.on('cancel', () => {
-        console.log('Call cancelled');
+        logger.info('Call cancelled');
         setCallState('ended');
         setCurrentCall(null);
       });
@@ -218,20 +219,20 @@ export function useTwilioDevice(): TwilioDevice {
       call.on('error', (error) => {
         // ConnectionError 31005 は通話終了時の正常なエラーなので無視
         if (error.code === 31005) {
-          console.log('Call ended normally');
+          logger.debug('Call ended normally');
           setCallState('ended');
           setCurrentCall(null);
           return;
         }
         
-        console.error('Call error:', error);
+        logger.error({ error }, 'Call error');
         setError(error.message || 'Call error occurred');
         setCallState('ended');
         setCurrentCall(null);
       });
 
     } catch (err) {
-      console.error('Failed to make call:', err);
+      logger.error({ error: err }, 'Failed to make call');
       setError(err instanceof Error ? err.message : 'Failed to make call');
       setCallState('ended');
     }
@@ -269,7 +270,7 @@ export function useTwilioDevice(): TwilioDevice {
 
   const acceptCall = useCallback(() => {
     if (incomingCall) {
-      console.log('Accepting incoming call');
+      logger.info('Accepting incoming call');
       
       // 通知を閉じる
       if (currentNotification.current) {
@@ -284,7 +285,7 @@ export function useTwilioDevice(): TwilioDevice {
 
       // 通話中のイベントリスナーを設定
       incomingCall.on('disconnect', () => {
-        console.log('Call disconnected');
+        logger.info('Call disconnected');
         setCallState('ended');
         setCurrentCall(null);
         setIsMuted(false);
@@ -294,7 +295,7 @@ export function useTwilioDevice(): TwilioDevice {
 
   const rejectCall = useCallback(() => {
     if (incomingCall) {
-      console.log('Rejecting incoming call');
+      logger.info('Rejecting incoming call');
       
       // 通知を閉じる
       if (currentNotification.current) {

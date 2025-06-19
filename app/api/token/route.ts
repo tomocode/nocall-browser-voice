@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import twilio from "twilio";
+import { logger } from "../../lib/logger";
 
 const AccessToken = twilio.jwt.AccessToken;
 const VoiceGrant = AccessToken.VoiceGrant;
@@ -36,7 +37,7 @@ export async function GET() {
       identity: identity,
     });
   } catch (error) {
-    console.error("Error generating token:", error);
+    logger.error({ error }, "Error generating token");
     return NextResponse.json(
       { error: "Failed to generate token" },
       { status: 500 }

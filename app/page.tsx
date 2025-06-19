@@ -8,6 +8,7 @@ import ErrorToast from './components/ErrorToast';
 import { useTwilioDevice } from './hooks/useTwilioDevice';
 import { useCallHistory } from './hooks/useCallHistory';
 import { formatPhoneNumberForDisplay } from './lib/utils';
+import { logger } from './lib/logger';
 
 export default function Home() {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -64,13 +65,13 @@ export default function Home() {
   };
 
   const handleDial = (digit: string) => {
-    console.log('Dialing digit:', digit);
+    logger.debug('Dialing digit:', digit);
   };
 
 
 
   const clearError = () => {
-    console.log('Clearing error');
+    logger.debug('Clearing error');
   };
 
 

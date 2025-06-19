@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import twilio from "twilio";
+import { logger } from "../../lib/logger";
 
 export async function POST(request: NextRequest) {
   const twiml = new twilio.twiml.VoiceResponse();
@@ -10,11 +11,11 @@ export async function POST(request: NextRequest) {
     const from = formData.get("From") as string;
     const direction = formData.get("Direction") as string;
 
-    console.log('Voice webhook called:', { to, from, direction });
+    logger.info({ to, from, direction }, "Voice webhook called");
 
     // ブラウザクライアントからの発信の場合
-    if (from === 'client:browser-client' && to) {
-      console.log('Outgoing call from browser client to:', to);
+    if (from === "client:browser-client" && to) {
+      logger.info({ to }, "Outgoing call from browser client");
       const dial = twiml.dial({
         callerId: process.env.NEXT_PUBLIC_TWILIO_PHONE_NUMBER,
         timeout: 30,
@@ -23,23 +24,23 @@ export async function POST(request: NextRequest) {
       dial.number(to);
     }
     // 外部からTwilio番号への着信の場合
-    else if (direction === 'inbound' && from !== 'client:browser-client') {
-      console.log('Incoming call from external number - routing to browser client');
+    else if (direction === "inbound" && from !== "client:browser-client") {
+      logger.info("Incoming call from external number - routing to browser client");
       const dial = twiml.dial({
         timeout: 30,
         answerOnBridge: true,
       });
-      dial.client('browser-client');
+      dial.client("browser-client");
     } else {
-      console.log('Invalid call configuration:', { from, to, direction });
-      twiml.say('Invalid call configuration');
+      logger.warn({ from, to, direction }, "Invalid call configuration");
+      twiml.say("Invalid call configuration");
     }
   } catch (error) {
-    console.error("Voice webhook error:", error);
+    logger.error({ error }, "Voice webhook error");
     twiml.say("An error occurred");
   }
 
-  console.log('TwiML Response:', twiml.toString());
+  logger.debug({ twiml: twiml.toString() }, "TwiML Response");
 
   return new NextResponse(twiml.toString(), {
     headers: {

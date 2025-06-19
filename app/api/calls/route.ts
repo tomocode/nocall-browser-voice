@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import twilio from "twilio";
+import { logger } from "../../lib/logger";
 
 interface CallRecord {
   sid: string;
@@ -67,7 +68,7 @@ export async function GET() {
 
     return NextResponse.json({ calls: callHistory });
   } catch (error) {
-    console.error("Error fetching call logs:", error);
+    logger.error({ error }, "Error fetching call logs");
     return NextResponse.json(
       { error: "Failed to fetch call logs" },
       { status: 500 }

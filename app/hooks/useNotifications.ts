@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { logger } from '../lib/logger';
 
 export function useNotifications() {
   const [permission, setPermission] = useState<NotificationPermission>('default');
@@ -11,7 +12,7 @@ export function useNotifications() {
 
   const requestPermission = async (): Promise<boolean> => {
     if (!('Notification' in window)) {
-      console.warn('This browser does not support notifications');
+      logger.warn('This browser does not support notifications');
       return false;
     }
 
@@ -26,7 +27,7 @@ export function useNotifications() {
 
   const showNotification = (title: string, options?: NotificationOptions): Notification | null => {
     if (permission !== 'granted') {
-      console.warn('Notification permission not granted');
+      logger.warn('Notification permission not granted');
       return null;
     }
 
