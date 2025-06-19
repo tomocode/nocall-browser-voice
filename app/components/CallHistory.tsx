@@ -1,45 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-
-interface CallRecord {
-  sid: string;
-  from: string;
-  to: string;
-  direction: string;
-  status: string;
-  duration: number;
-  startTime: string;
-  endTime: string | null;
-  price: string | null;
-  priceUnit: string | null;
-}
+import { useCallHistory } from '../hooks/useCallHistory';
 
 export default function CallHistory() {
-  const [calls, setCalls] = useState<CallRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchCallHistory();
-  }, []);
-
-  const fetchCallHistory = async () => {
-    try {
-      const response = await fetch('/api/calls');
-      if (!response.ok) {
-        throw new Error('Failed to fetch call history');
-      }
-      const data = await response.json();
-      setCalls(data.calls);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching calls:', err);
-      setError('通話履歴の取得に失敗しました');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { calls, isLoading, error, refreshHistory } = useCallHistory();
 
   const formatDuration = (seconds: number) => {
     if (seconds === 0) return '-';
@@ -90,7 +54,7 @@ export default function CallHistory() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-bold mb-4">通話履歴</h2>
@@ -103,7 +67,9 @@ export default function CallHistory() {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-xl font-bold mb-4">通話履歴</h2>
-        <div className="text-center py-4 text-red-500">{error}</div>
+        <div className="text-center py-4 text-red-500">
+          通話履歴の取得に失敗しました
+        </div>
       </div>
     );
   }
@@ -113,7 +79,7 @@ export default function CallHistory() {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">通話履歴</h2>
         <button
-          onClick={fetchCallHistory}
+          onClick={() => refreshHistory()}
           className="text-sm text-blue-600 hover:text-blue-800"
         >
           更新

@@ -6,6 +6,7 @@ import CallStatus from './components/CallStatus';
 import CallHistory from './components/CallHistory';
 import ErrorToast from './components/ErrorToast';
 import { useTwilioDevice } from './hooks/useTwilioDevice';
+import { useCallHistory } from './hooks/useCallHistory';
 
 export default function Home() {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -24,6 +25,8 @@ export default function Home() {
     rejectCall,
   } = useTwilioDevice();
 
+  const { refreshHistory } = useCallHistory();
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (callState === 'in-call') {
@@ -40,6 +43,18 @@ export default function Home() {
       }
     };
   }, [callState]);
+
+  // 通話終了時に履歴を更新
+  useEffect(() => {
+    if (callState === 'ended') {
+      // 通話終了から少し遅延して履歴を更新（Twilioでの記録更新を待つ）
+      const timer = setTimeout(() => {
+        refreshHistory();
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [callState, refreshHistory]);
 
   const handleCall = () => {
     if (phoneNumber.trim()) {

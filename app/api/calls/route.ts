@@ -69,10 +69,8 @@ export async function GET() {
       { calls: callHistory },
       {
         headers: {
-          // ブラウザは毎回最新、CDN は60秒キャッシュ、古いものは30秒まで提供
-          "Cache-Control": "max-age=0",
-          "Vercel-CDN-Cache-Control":
-            "public, s-maxage=60, stale-while-revalidate=30",
+          // SWRでクライアント側キャッシュを使用するため、軽量なEdgeキャッシュのみ
+          "Cache-Control": "max-age=0, s-maxage=30",
         },
       }
     );
