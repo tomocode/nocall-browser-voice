@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
 import twilio from "twilio";
 import { logger } from "../../lib/logger";
-
-interface CallRecord {
-  sid: string;
-  from: string;
-  to: string;
-  direction: string;
-  status: string;
-  duration: number;
-  startTime: Date;
-  endTime: Date | null;
-  price: string | null;
-  priceUnit: string | null;
-}
+import { CallHistoryResponseSchema, CallRecord } from "../../lib/schemas";
 
 function formatPhoneNumber(phoneNumber: string): string {
   // +81から始まる場合は0に変換
@@ -41,11 +29,22 @@ export async function GET() {
     const twentyFourHoursAgo = new Date();
     twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
-    const calls = await client.calls.list({
+    // 発信通話を取得
+    const outboundCalls = await client.calls.list({
       startTimeAfter: twentyFourHoursAgo,
       from: process.env.NEXT_PUBLIC_TWILIO_PHONE_NUMBER,
-      limit: 50, // 最新50件まで
+      limit: 25,
     });
+
+    // 着信通話を取得
+    const inboundCalls = await client.calls.list({
+      startTimeAfter: twentyFourHoursAgo,
+      to: process.env.NEXT_PUBLIC_TWILIO_PHONE_NUMBER,
+      limit: 25,
+    });
+
+    // 発信と着信を統合
+    const calls = [...outboundCalls, ...inboundCalls];
 
     const callHistory: CallRecord[] = calls.map((call) => ({
       sid: call.sid,
@@ -54,8 +53,8 @@ export async function GET() {
       direction: call.direction,
       status: call.status,
       duration: call.duration ? parseInt(call.duration) : 0,
-      startTime: call.startTime,
-      endTime: call.endTime,
+      startTime: call.startTime ? call.startTime.toISOString() : new Date().toISOString(),
+      endTime: call.endTime ? call.endTime.toISOString() : null,
       price: call.price,
       priceUnit: call.priceUnit,
     }));
@@ -66,7 +65,10 @@ export async function GET() {
         new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
     );
 
-    return NextResponse.json({ calls: callHistory });
+    // zodでレスポンスを検証
+    const response = CallHistoryResponseSchema.parse({ calls: callHistory });
+    
+    return NextResponse.json(response);
   } catch (error) {
     logger.error({ error }, "Error fetching call logs");
     return NextResponse.json(

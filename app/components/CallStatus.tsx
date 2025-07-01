@@ -1,8 +1,7 @@
 'use client';
 
 import { formatPhoneNumberForDisplay } from '../lib/utils';
-
-export type CallState = 'idle' | 'dialing' | 'ringing' | 'in-call' | 'ended' | 'incoming';
+import { CallState } from '../lib/schemas';
 
 interface CallStatusProps {
   callState: CallState;
@@ -16,13 +15,13 @@ interface CallStatusProps {
   onReject?: () => void;
 }
 
-export default function CallStatus({ 
-  callState, 
-  phoneNumber, 
-  duration, 
-  isMuted, 
-  onMute, 
-  onUnmute, 
+export default function CallStatus({
+  callState,
+  phoneNumber,
+  duration,
+  isMuted,
+  onMute,
+  onUnmute,
   onHangup,
   onAccept,
   onReject
@@ -99,11 +98,10 @@ export default function CallStatus({
             {callState === 'in-call' && (
               <button
                 onClick={isMuted ? onUnmute : onMute}
-                className={`px-6 py-3 rounded-full font-semibold transition-colors ${
-                  isMuted 
-                    ? 'bg-red-500 hover:bg-red-600 text-white' 
+                className={`px-6 py-3 rounded-full font-semibold transition-colors ${isMuted
+                    ? 'bg-red-500 hover:bg-red-600 text-white'
                     : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                }`}
+                  }`}
               >
                 {isMuted ? 'ミュート解除' : 'ミュート'}
               </button>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Device, Call } from '@twilio/voice-sdk';
-import { CallState } from '../components/CallStatus';
+import { CallState } from '../lib/schemas';
 import { useNotifications } from './useNotifications';
 import { logger } from '../lib/logger';
 
@@ -21,6 +21,7 @@ export interface TwilioDevice {
   retry: () => void;
   acceptCall: () => void;
   rejectCall: () => void;
+  clearError: () => void;
 }
 
 export function useTwilioDevice(): TwilioDevice {
@@ -139,7 +140,7 @@ export function useTwilioDevice(): TwilioDevice {
     } finally {
       isInitializing.current = false;
     }
-  }, []);
+  }, [device, requestPermission]);
 
   useEffect(() => {
     initializeDevice();
@@ -328,6 +329,11 @@ export function useTwilioDevice(): TwilioDevice {
     }
   }, [incomingCall]);
 
+  const clearError = useCallback(() => {
+    logger.debug('Clearing error');
+    setError(null);
+  }, []);
+
   // refに関数を設定
   useEffect(() => {
     acceptCallRef.current = acceptCall;
@@ -349,5 +355,6 @@ export function useTwilioDevice(): TwilioDevice {
     retry,
     acceptCall,
     rejectCall,
+    clearError,
   };
 }

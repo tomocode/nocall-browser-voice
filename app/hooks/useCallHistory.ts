@@ -1,11 +1,10 @@
-import useSWR from 'swr';
-import { fetcher, swrConfig } from '../lib/swr';
-import { CallHistoryResponse } from '../types/call';
+import { useTypedSWR, swrConfig } from '../lib/swr';
+import { CallHistoryResponseSchema } from '../lib/schemas';
 
 export function useCallHistory() {
-  const { data, error, isLoading, mutate } = useSWR<CallHistoryResponse>(
+  const { data, error, isLoading, mutate } = useTypedSWR(
     '/api/calls',
-    fetcher,
+    CallHistoryResponseSchema,
     swrConfig
   );
 

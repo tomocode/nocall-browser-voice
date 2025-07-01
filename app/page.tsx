@@ -13,7 +13,7 @@ import { logger } from './lib/logger';
 export default function Home() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [callDuration, setCallDuration] = useState(0);
-  
+
   const {
     callState,
     isMuted,
@@ -25,6 +25,7 @@ export default function Home() {
     unmute,
     acceptCall,
     rejectCall,
+    clearError,
   } = useTwilioDevice();
 
   const { refreshHistory } = useCallHistory();
@@ -69,12 +70,6 @@ export default function Home() {
   };
 
 
-
-  const clearError = () => {
-    logger.debug('Clearing error');
-  };
-
-
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
@@ -97,8 +92,8 @@ export default function Home() {
             <div className="space-y-6">
               <CallStatus
                 callState={callState}
-                phoneNumber={callState === 'incoming' && incomingCall ? 
-                  formatPhoneNumberForDisplay(incomingCall.parameters.From || '') : 
+                phoneNumber={callState === 'incoming' && incomingCall ?
+                  formatPhoneNumberForDisplay(incomingCall.parameters.From || '') :
                   phoneNumber}
                 duration={callDuration}
                 isMuted={isMuted}
@@ -114,20 +109,20 @@ export default function Home() {
                 onPhoneNumberChange={setPhoneNumber}
                 onDial={handleDial}
               />
-              
+
               <div className="text-center">
                 <button
                   onClick={handleCall}
                   disabled={!phoneNumber.trim() || (callState === 'dialing' || callState === 'ringing' || callState === 'in-call' || callState === 'incoming')}
                   className="w-full max-w-xs px-8 py-4 bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-full transition-colors"
                 >
-                  {(callState === 'dialing' || callState === 'ringing' || callState === 'in-call') ? '通話中' : 
-                   callState === 'incoming' ? '着信中' : '発信'}
+                  {(callState === 'dialing' || callState === 'ringing' || callState === 'in-call') ? '通話中' :
+                    callState === 'incoming' ? '着信中' : '発信'}
                 </button>
               </div>
             </div>
           </div>
-          
+
           <div className="lg:mt-14">
             <CallHistory />
           </div>
