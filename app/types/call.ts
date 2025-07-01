@@ -1,17 +1,4 @@
 // 通話履歴の型定義
-export interface CallRecord {
-  sid: string;
-  from: string;
-  to: string;
-  direction: string;
-  status: string;
-  duration: number;
-  startTime: string;
-  endTime: string | null;
-  price: string | null;
-  priceUnit: string | null;
-}
-
-export interface CallHistoryResponse {
-  calls: CallRecord[];
-}
+// 従来の型定義はzodスキーマに移行しました
+// app/lib/schemas.ts をご利用ください
+export type { CallRecord, CallHistoryResponse } from '../lib/schemas';
