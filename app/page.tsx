@@ -25,6 +25,7 @@ export default function Home() {
     unmute,
     acceptCall,
     rejectCall,
+    clearError,
   } = useTwilioDevice();
 
   const { refreshHistory } = useCallHistory();
@@ -66,12 +67,6 @@ export default function Home() {
 
   const handleDial = (digit: string) => {
     logger.debug('Dialing digit:', digit);
-  };
-
-
-
-  const clearError = () => {
-    logger.debug('Clearing error');
   };
 
 

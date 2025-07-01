@@ -1,8 +1,7 @@
 'use client';
 
 import { formatPhoneNumberForDisplay } from '../lib/utils';
-
-export type CallState = 'idle' | 'dialing' | 'ringing' | 'in-call' | 'ended' | 'incoming';
+import { CallState } from '../lib/schemas';
 
 interface CallStatusProps {
   callState: CallState;

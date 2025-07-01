@@ -1,15 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import twilio from "twilio";
 import { logger } from "../../lib/logger";
+import { TwilioWebhookSchema } from "../../lib/schemas";
 
 export async function POST(request: NextRequest) {
   const twiml = new twilio.twiml.VoiceResponse();
 
   try {
     const formData = await request.formData();
-    const to = formData.get("To") as string;
-    const from = formData.get("From") as string;
-    const direction = formData.get("Direction") as string;
+    const rawParams = {
+      To: formData.get("To") as string,
+      From: formData.get("From") as string,
+      Direction: formData.get("Direction") as string,
+      CallSid: formData.get("CallSid") as string,
+      AccountSid: formData.get("AccountSid") as string,
+    };
+
+    // zodでパラメータを検証
+    const params = TwilioWebhookSchema.parse(rawParams);
+    const { To: to, From: from, Direction: direction } = params;
 
     logger.info({ to, from, direction }, "Voice webhook called");
 

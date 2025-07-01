@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import twilio from "twilio";
 import { logger } from "../../lib/logger";
+import { TokenResponseSchema, ErrorResponseSchema } from "../../lib/schemas";
 
 const AccessToken = twilio.jwt.AccessToken;
 const VoiceGrant = AccessToken.VoiceGrant;
@@ -13,10 +14,10 @@ export async function GET() {
     const applicationSid = process.env.TWILIO_APPLICATION_SID;
 
     if (!accountSid || !apiKey || !apiSecret || !applicationSid) {
-      return NextResponse.json(
-        { error: "Missing Twilio configuration" },
-        { status: 500 }
-      );
+      const errorResponse = ErrorResponseSchema.parse({
+        error: "Missing Twilio configuration"
+      });
+      return NextResponse.json(errorResponse, { status: 500 });
     }
 
     const identity = 'browser-client';
@@ -32,15 +33,17 @@ export async function GET() {
 
     token.addGrant(voiceGrant);
 
-    return NextResponse.json({
+    const response = TokenResponseSchema.parse({
       token: token.toJwt(),
       identity: identity,
     });
+
+    return NextResponse.json(response);
   } catch (error) {
     logger.error({ error }, "Error generating token");
-    return NextResponse.json(
-      { error: "Failed to generate token" },
-      { status: 500 }
-    );
+    const errorResponse = ErrorResponseSchema.parse({
+      error: "Failed to generate token"
+    });
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
