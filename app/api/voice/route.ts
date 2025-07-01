@@ -16,10 +16,21 @@ export async function POST(request: NextRequest) {
       AccountSid: formData.get("AccountSid") as string,
     };
 
-    // zodでパラメータを検証
-    const params = TwilioWebhookSchema.parse(rawParams);
-    const { To: to, From: from, Direction: direction } = params;
+    // zodでパラメータを安全に検証
+    const validationResult = TwilioWebhookSchema.safeParse(rawParams);
+    
+    if (!validationResult.success) {
+      logger.error({ 
+        error: validationResult.error.errors, 
+        rawParams 
+      }, "Invalid webhook parameters");
+      twiml.say("Invalid webhook parameters");
+      return new NextResponse(twiml.toString(), {
+        headers: { "Content-Type": "text/xml" },
+      });
+    }
 
+    const { To: to, From: from, Direction: direction } = validationResult.data;
     logger.info({ to, from, direction }, "Voice webhook called");
 
     // ブラウザクライアントからの発信の場合
